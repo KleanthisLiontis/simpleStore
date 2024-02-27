@@ -1,0 +1,68 @@
+// send calldata -> function dispatch -> function.
+// 60008060093d393df3 -> contract creation bytecode 
+// XXX -> runtime code
+// xx -> 
+/* Interface */
+#define function updateStoreNumber(uint256) nonpayable returns ()
+#define function readNumberOfStores() view returns (uint256)
+
+/* Storage Slots */
+#define constant NUMBER_OF_HOUSES_LOCATION = FREE_STORAGE_POINTER() // 0
+#define constant STORAGE_SLOT_2 = FREE_STORAGE_POINTER() // 1
+
+/* Methods */
+#define macro SET_NUMBER_OF_HOUSES() = takes (0) returns (0) {
+    // 2. Get the value to store from calldata, 
+    0x04 calldataload   // [value]
+    // 1. Give it a storage slot
+    [NUMBER_OF_HOUSES_LOCATION]    // [storage_slot_ptr, value]
+    // 3. Store opcode
+    sstore              // []
+    //Have to call stop to stop code from continuing execution
+    stop
+}
+
+#define macro GET_NUMBER_OF_HOUSES() = takes (0) returns (0) {
+    // Load value from storage.
+    [NUMBER_OF_HOUSES_LOCATION]   // [ptr]
+    sload                // [value]
+
+    // Store value in memory.
+    0x00 mstore
+
+    // Return value
+    0x20 0x00 return
+}
+
+#define macro MAIN() = takes (0) returns (0) {
+    // Identify which function is being called.
+    // [push 0]
+    // calldataload gets functionselector after we get contract name with base conversion and shift right
+    0x00 calldataload 0xE0 shr   // functionselector
+    // __FUNC_SIG("updateStoreNumber(uint256)")
+    // cast sig "updateStoreNumber(uint256)"
+    // dup1 0xcdfead2e eq set jumpi
+
+    //Jump -> function data associated with the selector
+    //if f_select == updateHorseNumber -> jump to that code
+    //if f_select == readHorseNumber -> jump to that code
+    //0xcdfead2e == update
+    //0xe026c017 == read
+
+    //updateHorseNumber selector
+    //dup1 // [function_selector, functionselector]
+    //0xcdfead2e //[0xcdfead2e,function_selector, functionselector]
+    dup1 __FUNC_SIG(updateStoreNumber) eq //[true_if_func_selector_matches, functionselector] 
+    updateJump jumpi // []
+    
+    dup1 __FUNC_SIG(readNumberOfStores) eq readJump jumpi // []
+    0x00 0x00 revert
+
+    // __FUNC_SIG("readNumberOfHouses()")
+    // cast sig "readNumberOfHouses()"
+
+    updateJump:
+        SET_NUMBER_OF_HOUSES()
+    readJump:
+        GET_NUMBER_OF_HOUSES()
+}
