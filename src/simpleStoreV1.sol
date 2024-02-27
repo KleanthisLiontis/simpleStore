@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-contract simpleStore {
+contract SimpleStore {
     uint256 numberOfStores;
 
     function updateStoreWinner(uint256 newNumberOfStores) external {

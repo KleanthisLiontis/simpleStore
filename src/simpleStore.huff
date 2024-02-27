@@ -28,10 +28,11 @@
     sload                // [value]
 
     // Store value in memory.
-    0x00 mstore
+    0x00 mstore // [] // Memory: [value]
 
-    // Return value
-    0x20 0x00 return
+    // Return value - First size of data in bytes -> 0x20 == 32bytes
+    // and then position in storage
+    0x20 0x00 return // [] pops the stack retruns whats in memory.
 }
 
 #define macro MAIN() = takes (0) returns (0) {
@@ -57,10 +58,7 @@
     
     dup1 __FUNC_SIG(readNumberOfStores) eq readJump jumpi // []
     0x00 0x00 revert
-
-    // __FUNC_SIG("readNumberOfHouses()")
-    // cast sig "readNumberOfHouses()"
-
+    
     updateJump:
         SET_NUMBER_OF_HOUSES()
     readJump:
